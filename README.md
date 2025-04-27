@@ -247,23 +247,15 @@ This project uses [Leaflet.js](https://leafletjs.com/) for interactive map rende
 ## Known Issues & Future Work
 
 - Dynamic testing to proxy Windsurf messages, allowing for review of the data and formats being sent to Windsurf and Codium Cloud.
-- Investigate and identify the reasons why certain available data and message types—such as vessel destination, type, and dimensions—are not being received, processed, or visualized, despite their potential value.
-- Containerizing and scaling app functions for robust deployment and cloud-native operation
-- Applying machine learning to enrich and classify AIS and related data streams
-- Visualization of first and second order time derivatives (velocity, acceleration) for vessel movement
-- Incorporating additional normalized data sources such as geospatial imaging for cross-correlation
-- Advanced anomaly and threat detection based on use cases enabled by enriched and multi-modal data sets
-
-<details>
-<summary><b>Future Improvements</b> (click to expand)</summary>
-
-- Improved vessel type filtering and area-based spoofing scenarios
-- More robust error handling and enhanced logging features
-- Integration with additional data sources and enrichment pipelines
-- Support for real-time collaborative map annotation
-- UI/UX enhancements for alert visualization and vessel detail popups
-
-</details>
+- Investigate and resolve missing or unprocessed AIS data fields (e.g., vessel destination, type, dimensions) to improve data completeness and visualization.
+- Containerize and scale application functions for robust, cloud-native deployment.
+- Apply machine learning to enrich, classify, and detect anomalies in AIS and related maritime data streams.
+- Visualize first and second order time derivatives (velocity, acceleration) for vessel movement to enable richer analytics.
+- Incorporate additional normalized data sources (e.g., geospatial imaging) for cross-correlation and advanced enrichment.
+- Integrate more robust error handling, logging, and testing for reliability.
+- Support improved vessel type filtering, area-based spoofing/anomaly scenarios, and collaborative map annotation.
+- Enhance UI/UX for alert visualization, vessel details, and user interaction (including chat).
+- Enable advanced anomaly and threat detection based on use cases supported by enriched and multi-modal data sets.
 
 ## References
 

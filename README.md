@@ -248,6 +248,11 @@ This project uses [Leaflet.js](https://leafletjs.com/) for interactive map rende
 
 - Dynamic testing to proxy Windsurf messages, allowing for review of the data and formats being sent to Windsurf and Codium Cloud.
 - Investigate and identify the reasons why certain available data and message types—such as vessel destination, type, and dimensions—are not being received, processed, or visualized, despite their potential value.
+- Containerizing and scaling app functions for robust deployment and cloud-native operation
+- Applying machine learning to enrich and classify AIS and related data streams
+- Visualization of first and second order time derivatives (velocity, acceleration) for vessel movement
+- Incorporating additional normalized data sources such as geospatial imaging for cross-correlation
+- Advanced anomaly and threat detection based on use cases enabled by enriched and multi-modal data sets
 
 ## Learning with Windsurf IDE
 

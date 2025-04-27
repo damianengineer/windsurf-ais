@@ -13,6 +13,8 @@ import math
 from fastapi import Body
 from datetime import timedelta
 from shiptype_lookup import get_shiptype_meaning
+import numpy as np
+from circle_fit import fit_circle
 
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
 API_KEY = os.getenv("AIS_STREAM_KEY")
@@ -259,6 +261,10 @@ def process_position_report(msg, mmsi, meta, ais):
             "type": "course_change_anomaly",
             "message": f"ALERT: Vessel {mmsi} changed heading by {delta_heading:.1f}° at {ts}"
         }
+    # 6. Circle spoofing
+    alert = detect_circle_spoofing(mmsi)
+    if alert:
+        alert["timestamp"] = ts
     # --- Tracking fields for map and icon ---
     history_point = {
         "timestamp": ts,
@@ -808,6 +814,57 @@ async def inject_telemetry(
     }
     await ais_message_queue.put(msg)
     return {"status": "telemetry injected"}
+
+CIRCLE_DETECTION_WINDOW = 60 * 45  # seconds (45 min window)
+CIRCLE_MIN_POINTS = 3  # LOWERED for testing
+CIRCLE_MAX_RESIDUAL = 0.0001  # degrees, ~10m
+CIRCLE_MIN_RADIUS = 0.1 / 60  # degrees (~0.1 nm)
+CIRCLE_MAX_RADIUS = 2.0 / 60  # degrees (~2 nm)
+CIRCLE_UNIFORMITY_THRESHOLD = 0.03  # radians
+CIRCLE_SOG_STD_THRESHOLD = 0.5  # knots
+
+def detect_circle_spoofing(mmsi):
+    """
+    Check if vessel's recent track forms a suspiciously perfect circle.
+    Returns alert dict if detected, else None.
+    """
+    now = datetime.utcnow()
+    history = vessel_history.get(mmsi, [])
+    if len(history) < CIRCLE_MIN_POINTS:
+        return None
+    # Only use recent points
+    cut_ts = (now - timedelta(seconds=CIRCLE_DETECTION_WINDOW)).isoformat()
+    points = [pt for pt in history if pt.get("timestamp","") >= cut_ts and pt.get("lat") and pt.get("lon")]
+    if len(points) < CIRCLE_MIN_POINTS:
+        return None
+    xs = [pt["lat"] for pt in points]
+    ys = [pt["lon"] for pt in points]
+    xc, yc, r, residual = fit_circle(xs, ys)
+    if not (CIRCLE_MIN_RADIUS <= r <= CIRCLE_MAX_RADIUS):
+        return None
+    if residual > CIRCLE_MAX_RESIDUAL:
+        return None
+    # Uniformity: check angular spacing
+    thetas = [np.arctan2(yc-y, xc-x) for x, y in zip(xs, ys)]
+    thetas = np.unwrap(thetas)
+    dthetas = np.diff(thetas)
+    if np.std(dthetas) > CIRCLE_UNIFORMITY_THRESHOLD:
+        return None
+    # SOG uniformity
+    sogs = [pt.get("sog") for pt in points if pt.get("sog") is not None]
+    if len(sogs) < CIRCLE_MIN_POINTS:
+        return None
+    if np.std(sogs) > CIRCLE_SOG_STD_THRESHOLD:
+        return None
+    # Passed all checks
+    alert = {
+        "mmsi": mmsi,
+        "timestamp": now.isoformat(),
+        "type": "circle_spoofing",
+        "message": f"ALERT: Vessel {mmsi} detected with possible circle spoofing pattern (r={r*60:.2f}nm)"
+    }
+    print(f"[DEBUG] Circle spoofing alert generated: {alert}")
+    return alert
 
 # Helper to process synthetic messages as if from stream
 def process_ais_message_sync(msg):

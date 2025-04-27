@@ -245,6 +245,15 @@
             if (hp.alert && hp.alert.message) {
                 addTickerAlert(hp.alert.message);
             }
+
+            // --- Alert ticker for circle spoofing ---
+            if (hp.alert && hp.alert.type === 'circle_spoofing') {
+                addTickerAlert(hp.alert.message);
+                // Optionally, highlight the vessel marker
+                if (vesselMarkers[markerKey]) {
+                    vesselMarkers[markerKey].getElement().classList.add('danger-ship-icon');
+                }
+            }
         };
     </script>
 </body>

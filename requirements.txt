@@ -1,0 +1,3 @@
+fastapi[all]
+websockets
+python-dotenv

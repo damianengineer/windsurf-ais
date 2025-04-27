@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AIS SF Bay Live Map</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        #map { height: 100vh; width: 100vw; }
+        #alert-overlay {
+            display: none;
+        }
+        #alert-ticker {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100vw;
+            height: 44px;
+            background: rgba(30,30,30,0.92);
+            color: #fff;
+            z-index: 10001;
+            overflow: hidden;
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.4);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 1.13em;
+            line-height: 44px;
+            pointer-events: none;
+        }
+        .alert-ticker-track {
+            display: flex;
+            align-items: center;
+            height: 100%;
+            white-space: nowrap;
+            will-change: transform;
+            animation: ticker-scroll linear infinite;
+        }
+        .alert-ticker-msg {
+            display: inline-block;
+            margin-right: 48px;
+            padding: 0 16px;
+            color: #fff;
+            background: rgba(255, 70, 70, 0.12);
+            border-radius: 6px;
+            border-left: 4px solid #ff4444;
+            font-weight: 500;
+            text-shadow: 0 1px 3px #000a;
+        }
+        @keyframes ticker-scroll {
+            0% { transform: translateX(100vw); }
+            100% { transform: translateX(-100%); }
+        }
+        .danger-ship-icon {
+            animation: danger-pulse 1s infinite alternate;
+            filter: drop-shadow(0 0 10px red) drop-shadow(0 0 20px orange);
+        }
+        @keyframes danger-pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.15); }
+        }
+    </style>
+</head>
+<body>
+    <div id="alert-ticker" style="display:none;">
+        <div class="alert-ticker-track" id="alert-ticker-track"></div>
+    </div>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const map = L.map('map').setView([37.8, -122.4], 9);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            attribution: 'OpenStreetMap contributors'
+        }).addTo(map);
+
+        const vesselMarkers = {};
+        const alertTicker = document.getElementById('alert-ticker');
+        const alertTickerTrack = document.getElementById('alert-ticker-track');
+        let tickerBuffer = [];
+        let tickerTimeout = null;
+        function addTickerAlert(msg) {
+            tickerBuffer.push(msg);
+            renderTicker();
+        }
+        function renderTicker() {
+            if (tickerBuffer.length === 0) {
+                alertTicker.style.display = 'none';
+                alertTickerTrack.innerHTML = '';
+                return;
+            }
+            alertTicker.style.display = 'block';
+            alertTickerTrack.innerHTML = tickerBuffer.map(a => `<span class='alert-ticker-msg'>${a}</span>`).join('');
+            const n = tickerBuffer.length;
+            const duration = Math.max(10, n * 6); 
+            alertTickerTrack.style.animation = `ticker-scroll ${duration}s linear infinite`;
+        }
+        function removeOldestTickerAlert() {
+            tickerBuffer.shift();
+            renderTicker();
+        }
+
+        const ws = new WebSocket(`ws://${window.location.hostname}:8000/ws`);
+        ws.onmessage = function(event) {
+            const msg = JSON.parse(event.data);
+            const v = msg.history_point;
+            if (!v) return;
+            const hp = v;
+            let lat = null, lon = null, sog = null, heading = null;
+            if (hp.raw_position_report) {
+                lat = hp.raw_position_report.Latitude;
+                lon = hp.raw_position_report.Longitude;
+                sog = parseFloat(hp.raw_position_report.Sog);
+                if (isNaN(sog) || sog >= 102.2 || sog < 0) sog = null;
+                heading = hp.raw_position_report.TrueHeading;
+                if (heading === undefined || heading === 511) heading = hp.raw_position_report.Cog;
+            } else if (hp.raw_standard_class_b_position_report) {
+                lat = hp.raw_standard_class_b_position_report.Latitude;
+                lon = hp.raw_standard_class_b_position_report.Longitude;
+                sog = parseFloat(hp.raw_standard_class_b_position_report.Sog);
+                if (isNaN(sog) || sog >= 102.2 || sog < 0) sog = null;
+                heading = hp.raw_standard_class_b_position_report.TrueHeading;
+                if (heading === undefined || heading === 511) heading = hp.raw_standard_class_b_position_report.Cog;
+            }
+            if (hp.raw_aids_to_navigation_report) {
+                lat = hp.raw_aids_to_navigation_report.Latitude;
+                lon = hp.raw_aids_to_navigation_report.Longitude;
+            }
+            if (hp.raw_base_station_report) {
+                lat = hp.raw_base_station_report.Latitude;
+                lon = hp.raw_base_station_report.Longitude;
+            }
+            if (lat === undefined || lon === undefined || lat === null || lon === null) return;
+
+            let markerKey = hp.meta && hp.meta.MMSI ? hp.meta.MMSI : hp.mmsi;
+            let icon = null;
+            let popupHtml = '';
+
+            function isTestVessel(hp) {
+                if (!hp) return false;
+                const name = (hp.meta && (hp.meta.ship_name || hp.meta.ShipName)) || hp.ship_name || hp.ShipName || '';
+                const mmsi = (hp.meta && hp.meta.MMSI) || hp.mmsi;
+                return (
+                    name.startsWith('USS Enterprise') ||
+                    name.startsWith('USS Voyager') ||
+                    name.startsWith('USS Defiant') ||
+                    name.startsWith('USS Discovery') ||
+                    name.startsWith('USS Excelsior') ||
+                    name.startsWith('USS Reliant') ||
+                    (mmsi >= 1000000 && mmsi < 2000000)
+                );
+            }
+
+            let staticData = null;
+            if (hp.raw_static_data) staticData = hp.raw_static_data;
+
+            if (hp.raw_position_report || hp.raw_standard_class_b_position_report) {
+                let navStatusVal = hp.navigational_status;
+                const navStatusIcons = {0: '🚢', 1: '⚓', 2: '❗', 3: '⛔', 4: '🛑', 5: '🪢', 6: '⛱️', 7: '🎣', 8: '⛵', 11: '🛳️', 12: '🛥️', 14: '🆘', 15: '⚠️'};
+                const navStatusLabels = {
+                    0: 'Under way using engine',
+                    1: 'At anchor',
+                    2: 'Not under command',
+                    3: 'Restricted manoeuverability',
+                    4: 'Constrained by her draught',
+                    5: 'Moored',
+                    6: 'Aground',
+                    7: 'Engaged in fishing',
+                    8: 'Under way sailing',
+                    9: 'Reserved for future amendment',
+                    10: 'Reserved for future amendment',
+                    11: 'Power-driven vessel towing astern',
+                    12: 'Power-driven vessel pushing ahead or towing alongside',
+                    13: 'Reserved for future use',
+                    14: 'AIS-SART (active), MOB-AIS, EPIRB-AIS',
+                    15: 'Unusual/Reserved/Test'
+                };
+                let iconEmoji = navStatusIcons.hasOwnProperty(navStatusVal) ? navStatusIcons[navStatusVal] : '📍';
+                let navStatusText = navStatusLabels.hasOwnProperty(navStatusVal) ? navStatusLabels[navStatusVal] : 'Unknown';
+                icon = L.divIcon({
+                    className: isTestVessel(hp) ? 'emoji-marker danger-ship-icon' : 'emoji-marker',
+                    html: `<span style="font-size: 2em;">${iconEmoji}</span>`,
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 32],
+                    popupAnchor: [0, -32]
+                });
+                let shipName = hp.ship_name || (hp.meta && hp.meta.ShipName) || (staticData && staticData.ShipName) || 'Unknown Ship';
+                let imo = staticData && staticData.IMO;
+                let callsign = staticData && staticData.CallSign;
+                let vesselType = staticData && staticData.ShipType;
+                let destination = staticData && staticData.Destination;
+                let eta = staticData && staticData.ETA;
+                const flag = hp.flag || 'Unknown';
+                const flagEmoji = (function() {
+                    const countryToFlagEmoji = {
+                        'United States': '🇺🇸', 'United Kingdom': '🇬🇧', 'France': '🇫🇷', 'Germany': '🇩🇪', 'Canada': '🇨🇦', 'Japan': '🇯🇵', 'China': '🇨🇳', 'Russia': '🇷🇺', 'Italy': '🇮🇹', 'Spain': '🇪🇸', 'Netherlands': '🇳🇱', 'Norway': '🇳🇴', 'Greece': '🇬🇷', 'Panama': '🇵🇦', 'Bahamas': '🇧🇸', 'Singapore': '🇸🇬', 'Malta': '🇲🇹', 'Liberia': '🇱🇷', 'Marshall Islands': '🇲🇭', 'Denmark': '🇩🇰', 'Finland': '🇫🇮', 'Sweden': '🇸🇪', 'Belgium': '🇧🇪', 'Ireland': '🇮🇪', 'Australia': '🇦🇺', 'New Zealand': '🇳🇿', 'South Korea': '🇰🇷', 'Hong Kong': '🇭🇰', 'Turkey': '🇹🇷', 'India': '🇮🇳', 'Brazil': '🇧🇷', 'Argentina': '🇦🇷', 'Portugal': '🇵🇹', 'Switzerland': '🇨🇭', 'Poland': '🇵🇱', 'Estonia': '🇪🇪', 'Lithuania': '🇱🇹', 'Latvia': '🇱🇻', 'Croatia': '🇭🇷', 'Slovenia': '🇸🇮', 'Cyprus': '🇨🇾', 'Morocco': '🇲🇦', 'South Africa': '🇿🇦', 'Egypt': '🇪🇬', 'Turkey': '🇹🇷', 'Ukraine': '🇺🇦', 'Romania': '🇷🇴', 'Bermuda': '🇧🇲', 'Cayman Islands': '🇰🇾', 'British Virgin Islands': '🇻🇬', 'Saint Vincent and the Grenadines': '🇻🇨', 'Marshall Islands': '🇲🇭', 'Liberia': '🇱🇷', 'Unknown': '🏳️'
+                    };
+                    return countryToFlagEmoji[flag] || '🏳️';
+                })();
+                popupHtml = `<b>${shipName}</b> ${flagEmoji}<br><b>Flag:</b> ${flag}<br><b>MMSI:</b> ${markerKey}<br>`;
+                let shipType = staticData && (staticData.ShipType !== undefined ? staticData.ShipType : staticData.ship_type);
+                let shipTypeMeaning = staticData && (staticData.ship_type_meaning || null);
+                if (shipType !== undefined && shipType !== null) {
+                    popupHtml += `<b>Ship Type:</b> ${shipType}`;
+                    if (shipTypeMeaning) popupHtml += ` (${shipTypeMeaning})`;
+                    popupHtml += '<br>';
+                }
+                if (imo) popupHtml += `<b>IMO:</b> ${imo}<br>`;
+                if (callsign) popupHtml += `<b>Callsign:</b> ${callsign}<br>`;
+                if (vesselType) popupHtml += `<b>Type:</b> ${vesselType}<br>`;
+                if (destination) popupHtml += `<b>Dest:</b> ${destination}<br>`;
+                if (eta) popupHtml += `<b>ETA:</b> ${eta}<br>`;
+                popupHtml += `<b>Speed:</b> ${sog !== null && sog !== undefined ? sog + ' kn' : 'N/A'}`;
+                if (hp.delta_speed !== undefined && hp.delta_speed !== null) {
+                    popupHtml += ` (<span style='color:${Math.abs(hp.delta_speed) > 1 ? 'orange':'#666'}'>Δ ${hp.delta_speed.toFixed(2)} kn</span>)`;
+                }
+                popupHtml += `<br><b>Heading:</b> ${heading !== null && heading !== undefined ? heading : 'N/A'}`;
+                if (hp.delta_heading !== undefined && hp.delta_heading !== null) {
+                    popupHtml += ` (<span style='color:${Math.abs(hp.delta_heading) > 5 ? 'orange':'#666'}'>Δ ${hp.delta_heading.toFixed(1)}°</span>)`;
+                }
+                popupHtml += `<br><b>Nav Status:</b> ${navStatusVal} <span style='color:#ffd700;'>${navStatusText}</span><br>`;
+            }
+            else if (hp.raw_aids_to_navigation_report) {
+                const atonName = hp.raw_aids_to_navigation_report.Name || hp.raw_aids_to_navigation_report.name || 'Aid to Navigation';
+                icon = L.divIcon({className: 'emoji-marker', html: '<span style="font-size: 2em;">🪧</span>', iconSize: [32, 32], iconAnchor: [16, 32], popupAnchor: [0, -32]});
+                popupHtml = `<b>Aid to Navigation</b><br><b>Name:</b> <span style='font-size:1.1em;color:#ffd700;'>${atonName}</span><br><b>MMSI:</b> ${markerKey}`;
+            }
+            else if (hp.raw_base_station_report) {
+                icon = L.divIcon({className: 'emoji-marker', html: '<span style="font-size: 2em;">🏢</span>', iconSize: [32, 32], iconAnchor: [16, 32], popupAnchor: [0, -32]});
+                popupHtml = `<b>Base Station</b><br><b>MMSI:</b> ${markerKey}<br><pre>${JSON.stringify(hp.raw_base_station_report, null, 2)}</pre>`;
+            }
+            else if (hp.raw_safety_broadcast_message || hp.raw_addressed_safety_message) {
+                icon = L.divIcon({className: 'emoji-marker', html: '<span style="font-size: 2em;">⚠️</span>', iconSize: [32, 32], iconAnchor: [16, 32], popupAnchor: [0, -32]});
+                popupHtml = `<b>Safety Message</b><br><b>MMSI:</b> ${markerKey}<br><pre>${JSON.stringify(hp.raw_safety_broadcast_message || hp.raw_addressed_safety_message, null, 2)}</pre>`;
+            }
+            let marker = vesselMarkers[markerKey];
+            if (marker) {
+                marker.setLatLng([lat, lon]);
+                marker.setIcon(icon);
+                marker.setPopupContent(popupHtml);
+            } else {
+                marker = L.marker([lat, lon], {icon: icon}).addTo(map);
+                marker.bindPopup(popupHtml);
+                vesselMarkers[markerKey] = marker;
+            }
+
+            if (hp.alert && hp.alert.message) {
+                addTickerAlert(hp.alert.message);
+            }
+        };
+    </script>
+</body>
+</html>

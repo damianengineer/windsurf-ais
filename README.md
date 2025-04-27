@@ -54,6 +54,9 @@ python anomaly_simulation.py
 
 ## Troubleshooting
 
+<details>
+<summary><b>Troubleshooting</b> (click to expand)</summary>
+
 **Purging Data When Launching Backend:**
 - To clear all vessel and anomaly state for a fresh test, use the backend's `/reset_data` endpoint. You can do this with curl:
   ```sh
@@ -67,6 +70,8 @@ python anomaly_simulation.py
 - To force reload vessel data, refresh the browser after resetting the backend data.
 - For persistent issues, check backend logs for errors or stack traces.
 - If the chat assistant cannot connect, ensure the chat server is running on port 5001 and that your `.env` file contains a valid OpenAI API key.
+
+</details>
 
 ## Data Sources & Processing
 

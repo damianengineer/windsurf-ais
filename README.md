@@ -254,6 +254,29 @@ This project uses [Leaflet.js](https://leafletjs.com/) for interactive map rende
 - Incorporating additional normalized data sources such as geospatial imaging for cross-correlation
 - Advanced anomaly and threat detection based on use cases enabled by enriched and multi-modal data sets
 
+<details>
+<summary><b>Future Improvements</b> (click to expand)</summary>
+
+- Improved vessel type filtering and area-based spoofing scenarios
+- More robust error handling and enhanced logging features
+- Integration with additional data sources and enrichment pipelines
+- Support for real-time collaborative map annotation
+- UI/UX enhancements for alert visualization and vessel detail popups
+
+</details>
+
+## References
+
+<details>
+<summary><b>AIS Standards & References</b> (click to expand)</summary>
+
+This project is informed by several key AIS standards and protocols:
+
+- **International Telecommunication Union (ITU). (2014).** Recommendation ITU-R M.1371-5: Technical characteristics for an automatic identification system using time division multiple access in the VHF maritime mobile frequency band.
+- **Raymond, E. S.** "AIVDM/AIVDO protocol decoding." GPSD Documentation. [Read online](https://gpsd.gitlab.io/gpsd/AIVDM.html)
+- **National Marine Electronics Association.** NMEA 0183 Standard. [Specifications](https://www.nmea.org/)
+</details>
+
 ## Learning with Windsurf IDE
 
 This project served as a practical exercise to explore [Windsurf IDE](https://windsurf.com/)'s capabilities for AI-assisted development.
@@ -278,29 +301,6 @@ This represents our initial exploration of AI-assisted development rather than a
 - AI collaboration for implementing features
 - Running and visualizing both backend and frontend components locally
 - Anomaly simulation and testing
-</details>
-
-## References & Future Work
-
-<details>
-<summary><b>AIS Standards & References</b> (click to expand)</summary>
-
-This project is informed by several key AIS standards and protocols:
-
-- **International Telecommunication Union (ITU). (2014).** Recommendation ITU-R M.1371-5: Technical characteristics for an automatic identification system using time division multiple access in the VHF maritime mobile frequency band.
-- **Raymond, E. S.** "AIVDM/AIVDO protocol decoding." GPSD Documentation. [Read online](https://gpsd.gitlab.io/gpsd/AIVDM.html)
-- **National Marine Electronics Association.** NMEA 0183 Standard. [Specifications](https://www.nmea.org/)
-</details>
-
-<details>
-<summary><b>Future Improvements</b> (click to expand)</summary>
-
-Building on this initial prototype, future work might include:
-- **Improved Data Security**: Secure storage for API credentials
-- **Additional Data Sources**: Integration with supplementary maritime information
-- **Enhanced Testing**: Comprehensive test coverage for all components
-- **Architecture Improvements**: Refactoring for maintainability
-- **Standards Compliance**: Integration with established AIS parser libraries
 </details>
 
 ---

@@ -7,16 +7,47 @@ This project provides a real-time visualization of maritime Automatic Identifica
 - A FastAPI backend for ingesting, parsing, and broadcasting AIS messages.
 - A modern web frontend for map-based vessel visualization and a bottom alert ticker for anomalies.
 - An anomaly simulation tool for generating synthetic test cases (e.g., with Star Trek vessel names) as a starting point for exercising and testing anomaly detection features.
-- **Created as an example project to learn Windsurf IDE. Not intended for production use without additional testing and code review.**
+- **Created as an example project to learn [Windsurf IDE](https://windsurf.com/). Not intended for production use without additional testing and code review.**
 
 ---
 
 ## Project Motivation
-This project was inspired by Maritime Pattern Analysis problem sets explored during the National Security Hackathon. It provided a compelling real-world context to learn and experiment with Windsurf IDE and agentic AI coding workflows. By building a maritime AIS visualization and anomaly detection system, the project serves as a practical testbed for evaluating the capabilities of Windsurf IDE.
+This project was inspired by Maritime Pattern Analysis problem sets explored during the National Security Hackathon. It provided a compelling real-world context to learn and experiment with [Windsurf IDE](https://windsurf.com/) and agentic AI coding workflows. By building a maritime AIS visualization and anomaly detection system, the project serves as a practical testbed for evaluating the capabilities of [Windsurf IDE](https://windsurf.com/).
 
-Additionally, the name "Windsurf" itself inspired the project's nautical theme. Just as windsurfing involves navigating dynamic waters, this project focuses on navigating, visualizing, and monitoring maritime vessel data—making the nautical setting a natural fit for exploring Windsurf IDE's capabilities.
+Additionally, the name "Windsurf" itself inspired the project's nautical theme. Just as windsurfing involves navigating dynamic waters, this project focuses on navigating, visualizing, and monitoring maritime vessel data—making the nautical setting a natural fit for exploring [Windsurf IDE](https://windsurf.com/)'s capabilities.
 
-**Special thanks to [Cerebral Valley](https://cerebralvalley.ai/) and [Shield Capital](https://shieldcap.com/) for organizing, supporting, and inspiring this work!**
+**Special thanks to [Cerebral Valley](https://cerebralvalley.ai/), [Shield Capital](https://shieldcap.com/), and [Windsurf](https://windsurf.com/) (for providing a Pro subscription credit during the hackathon) for organizing, supporting, and inspiring this work!**
+
+---
+
+## Live AIS Data via aisstream.io
+This project uses [aisstream.io](https://aisstream.io/) to receive live AIS (Automatic Identification System) vessel data. The backend connects to the aisstream.io WebSocket API to ingest real-time messages for vessels operating in the San Francisco Bay Area.
+
+### Subscription Logic
+- **Geographic Limiting:**
+  - The subscription request includes a bounding box that restricts data to the Bay Area, reducing bandwidth and focusing analysis on relevant vessels.
+- **Message Types:**
+  - The subscription requests a comprehensive set of AIS message types, including `PositionReport`, `StandardClassBPositionReport`, `StaticDataReport`, `ShipStaticData`, `AidsToNavigationReport`, `BaseStationReport`, and others. This ensures the system receives both dynamic (position, speed, heading) and static (name, type, destination) vessel information, as well as navigation aids and base station updates.
+- **Example Subscription Payload:**
+```json
+{
+  "APIKey": "<YOUR_API_KEY>",
+  "BoundingBoxes": [[minLat, minLon, maxLat, maxLon]],
+  "FilterMessageTypes": [
+    "PositionReport", "StandardClassBPositionReport", "StaticDataReport", "ShipStaticData", "AidsToNavigationReport", "BaseStationReport", ...
+  ]
+}
+```
+
+### Getting Your Own API Key
+To run the project with live AIS data:
+1. Register for a free account at [aisstream.io](https://aisstream.io/).
+2. Navigate to your account dashboard and generate an API key.
+3. Copy your API key into a `.env` file in the project root as follows:
+   ```
+   AISSTREAM_API_KEY=your_actual_key_here
+   ```
+4. Restart the backend server to begin streaming live data.
 
 ---
 
@@ -60,27 +91,27 @@ The system uses a lookup table (see `countryToFlagEmoji` in the code) to convert
 
 ---
 
-## Unique Capabilities of Windsurf IDE (with GPT-4.1)
-Windsurf IDE stands out from other AI coding environments and assistants due to:
-- **Agentic Coding:** Windsurf enables AI agents to perform multi-step, autonomous coding actions, such as searching, editing, running, and debugging code, not just generating code snippets.
+## Unique Capabilities of [Windsurf IDE](https://windsurf.com/) (with GPT-4.1)
+[Windsurf IDE](https://windsurf.com/) stands out from other AI coding environments and assistants due to:
+- **Agentic Coding:** [Windsurf](https://windsurf.com/) enables AI agents to perform multi-step, autonomous coding actions, such as searching, editing, running, and debugging code, not just generating code snippets.
 - **Full-Stack Context:** The AI has access to your entire project, including backend, frontend, and configuration files, allowing for holistic understanding and changes.
 - **Live Code Execution:** You can run servers, scripts, and tests directly in the IDE, with AI able to observe outputs and iterate based on real results.
 - **Persistent Memory:** The AI remembers project context, design decisions, and user preferences across sessions, enabling more personalized and effective assistance.
 - **Seamless Collaboration:** Human users and AI agents can work together in real-time, making it easy to prototype, debug, and document complex systems.
 - **Rich UI Integration:** Features like browser previews, file explorers, and terminal access are tightly integrated, making development and troubleshooting more interactive and visual.
 
-Compared to other AI assistants, Windsurf IDE is more autonomous, context-aware, and collaborative, making it ideal for rapid prototyping and learning.
+Compared to other AI assistants, [Windsurf IDE](https://windsurf.com/) is more autonomous, context-aware, and collaborative, making it ideal for rapid prototyping and learning.
 
 ---
 
-## Using Windsurf IDE
-Windsurf IDE enables:
+## Using [Windsurf IDE](https://windsurf.com/)
+[Windsurf IDE](https://windsurf.com/) enables:
 - Real-time code editing, debugging, and visualization of backend/frontend changes.
 - Seamless collaboration with AI for implementing features, troubleshooting, and understanding code structure.
 - Running and visualizing the project locally, including live map updates and anomaly alert ticker.
 
 **Workflow Example:**
-1. Open the project in Windsurf IDE.
+1. Open the project in [Windsurf IDE](https://windsurf.com/).
 2. Inspect, modify, and run backend or frontend code directly in the IDE.
 3. Visualize live vessel data and anomaly alerts in the browser.
 4. Use the anomaly simulator to generate test cases and observe system response.
@@ -105,7 +136,7 @@ Windsurf IDE enables:
 ### Prerequisites
 - Python 3.8+
 - Node.js (for advanced frontend development, optional)
-- [Windsurf IDE](https://windsurf.codeium.com/) (recommended for full AI/IDE experience)
+- [Windsurf IDE](https://windsurf.com/) (recommended for full AI/IDE experience)
 
 ### Install Python Dependencies
 ```sh
@@ -178,4 +209,4 @@ The following improvements and enhancements are planned for future development:
 ---
 
 ## Contact & Contribution
-For questions or contributions, please use Windsurf IDE’s collaboration features or contact the project maintainer.
+For questions or contributions, please use [Windsurf IDE](https://windsurf.com/)'s collaboration features or contact the project maintainer.

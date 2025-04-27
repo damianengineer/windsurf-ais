@@ -54,24 +54,19 @@ python anomaly_simulation.py
 
 ## Troubleshooting
 
-### Purging Data When Launching Backend
-To clear all vessel and anomaly state for a fresh test, you can use the backend's reset endpoint:
+**Purging Data When Launching Backend:**
+- To clear all vessel and anomaly state for a fresh test, use the backend's `/reset_data` endpoint. You can do this with curl:
+  ```sh
+  curl -X POST http://localhost:8000/reset_data
+  ```
+  This will clear all in-memory vessel state, history, and spatial index. It is useful if you want to start with a clean slate or encounter stale/duplicate vessel data.
 
-```sh
-curl -X POST http://localhost:8000/reset_data
-```
-
-This is useful if you want to:
-- Start with a clean slate
-- Remove all previously injected or real vessel data
-- Troubleshoot issues related to stale or conflicting vessel tracks
-
-### Other Useful Troubleshooting Steps
-- **Hard Refresh the Map**: If you do not see expected updates, force your browser to reload the latest HTML/JS (Shift+Reload or Ctrl+F5).
-- **Check Backend Logs**: Run the backend with `DEBUG=1` to see detailed logs for message injection, processing, and broadcast.
-- **Verify WebSocket Connection**: Ensure the browser console shows a successful connection to `/ws` and no errors.
-- **Test Anomaly Injection**: Use the provided simulation scripts (e.g., `python anomaly_simulation.py`) to inject test patterns and verify detection/visualization.
-- **Restart Backend**: If you encounter unexpected behavior, try stopping and restarting the backend server.
+**Other Troubleshooting Tips:**
+- If the map or chat assistant is not updating, ensure the backend is running and accessible at the expected port (default: 8000).
+- If you encounter CORS or WebSocket connection issues, make sure your browser and backend are both using the correct hostname and port.
+- To force reload vessel data, refresh the browser after resetting the backend data.
+- For persistent issues, check backend logs for errors or stack traces.
+- If the chat assistant cannot connect, ensure the chat server is running on port 5001 and that your `.env` file contains a valid OpenAI API key.
 
 ## Data Sources & Processing
 
@@ -243,6 +238,10 @@ This project uses [Leaflet.js](https://leafletjs.com/) for interactive map rende
 
 **Map data © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright).**
 </details>
+
+## Credits
+
+Special thanks to [sockcymbal](https://github.com/sockcymbal) for major contributions, including the interactive map chat feature and improvements to user experience.
 
 ## Known Issues & Future Work
 

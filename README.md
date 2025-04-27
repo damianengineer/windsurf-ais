@@ -1,6 +1,6 @@
 # Maritime AIS Bay Area Visualization and Anomaly Alert System
 
-![AIS Bay Area Demo](demo480.mov)
+![AIS Bay Area Demo](./demo720.mov)
 
 ## Project Overview
 

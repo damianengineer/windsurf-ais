@@ -50,6 +50,27 @@ python anomaly_simulation.py
 ```
 </details>
 
+## Troubleshooting
+
+### Purging Data When Launching Backend
+To clear all vessel and anomaly state for a fresh test, you can use the backend's reset endpoint:
+
+```sh
+curl -X POST http://localhost:8000/reset_data
+```
+
+This is useful if you want to:
+- Start with a clean slate
+- Remove all previously injected or real vessel data
+- Troubleshoot issues related to stale or conflicting vessel tracks
+
+### Other Useful Troubleshooting Steps
+- **Hard Refresh the Map**: If you do not see expected updates, force your browser to reload the latest HTML/JS (Shift+Reload or Ctrl+F5).
+- **Check Backend Logs**: Run the backend with `DEBUG=1` to see detailed logs for message injection, processing, and broadcast.
+- **Verify WebSocket Connection**: Ensure the browser console shows a successful connection to `/ws` and no errors.
+- **Test Anomaly Injection**: Use the provided simulation scripts (e.g., `python anomaly_simulation.py`) to inject test patterns and verify detection/visualization.
+- **Restart Backend**: If you encounter unexpected behavior, try stopping and restarting the backend server.
+
 ## Data Sources & Processing
 
 ### Live AIS Data via aisstream.io
@@ -216,10 +237,15 @@ Circle spoofing is a maritime AIS anomaly in which a vessel appears to move in a
 <details>
 <summary><b>Map Source and Attribution</b> (click to expand)</summary>
 
-This project uses [Leaflet.js](https://leafletjs.com/) for interactive map rendering and [OpenStreetMap](https://www.openstreetmap.org/about) as the map data provider.
+This project uses [Leaflet.js](https://leafletjs.com/) for interactive map rendering and [OpenStreetMap](https://www.openstreetmap.org/copyright) as the map data provider.
 
 **Map data © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright).**
 </details>
+
+## Known Issues & Future Work
+
+- Dynamic testing to proxy Windsurf messages, allowing for review of the data and formats being sent to Windsurf and Codium Cloud.
+- Investigate and identify the reasons why certain available data and message types—such as vessel destination, type, and dimensions—are not being received, processed, or visualized, despite their potential value.
 
 ## Learning with Windsurf IDE
 

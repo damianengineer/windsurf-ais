@@ -249,6 +249,12 @@
             // --- Alert ticker for circle spoofing ---
             if (hp.alert && hp.alert.type === 'circle_spoofing') {
                 addTickerAlert(hp.alert.message);
+                // Draw red circle and zoom if lat/lon present
+                if (hp.alert.lat && hp.alert.lon) {
+                    if (window.spoofCircle) map.removeLayer(window.spoofCircle);
+                    window.spoofCircle = L.circle([hp.alert.lat, hp.alert.lon], {radius: 1000, color: 'red', fillOpacity: 0.15}).addTo(map);
+                    map.setView([hp.alert.lat, hp.alert.lon], 14, {animate:true});
+                }
                 // Optionally, highlight the vessel marker
                 if (vesselMarkers[markerKey]) {
                     vesselMarkers[markerKey].getElement().classList.add('danger-ship-icon');

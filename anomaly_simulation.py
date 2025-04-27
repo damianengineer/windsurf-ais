@@ -5,6 +5,7 @@ import sys
 import websocket
 import threading
 import json
+import os
 
 API_URL = "http://localhost:8000"
 # No absolute paths in this script, so nothing else to change.
@@ -225,21 +226,38 @@ def inject_circle_spoofing(mmsi, name, center_lat=37.8, center_lon=-122.4, radiu
 
 def get_fallback_vessel():
     """
-    Use a known test MMSI to retrieve vessel name and MMSI from /history/{mmsi} endpoint.
-    Returns (mmsi, name) if found, else (None, None).
+    Use the last vessel-related message in ais_stream.log to retrieve MMSI, name, and position.
+    Returns (mmsi, name, lat, lon) if found, else (None, None, None, None).
     """
-    test_mmsi = 1011701  # USS Enterprise NCC-1701
+    import os
+    log_path = os.path.join(os.path.dirname(__file__), "ais_stream.log")
+    vessel_types = {"PositionReport", "StandardClassBPositionReport", "StaticDataReport", "ShipStaticData"}
     try:
-        resp = requests.get(f"{API_URL}/history/{test_mmsi}")
-        history = resp.json()
-        if history and isinstance(history, list) and len(history) > 0:
-            entry = history[0]
-            mmsi = entry.get("meta", {}).get("MMSI") or entry.get("mmsi")
-            name = entry.get("meta", {}).get("ShipName") or entry.get("ship_name") or f"Vessel_{mmsi}"
-            return mmsi, name
+        with open(log_path, "r") as f:
+            lines = f.readlines()
+            for line in reversed(lines):
+                try:
+                    msg = json.loads(line)
+                    msg_type = msg.get("MessageType")
+                    if msg_type not in vessel_types:
+                        continue
+                    meta = msg.get("MetaData") or msg.get("Meta") or {}
+                    mmsi = meta.get("MMSI") or meta.get("MMSI_String") or msg.get("mmsi")
+                    name = meta.get("ShipName") or meta.get("ship_name")
+                    lat = meta.get("latitude") or meta.get("lat")
+                    lon = meta.get("longitude") or meta.get("lon")
+                    # For StaticDataReport, try to extract from Message.ReportA.Name
+                    if (not name or not name.strip()) and msg_type == "StaticDataReport":
+                        name = msg.get("Message", {}).get("StaticDataReport", {}).get("ReportA", {}).get("Name")
+                    if name:
+                        name = name.strip()
+                    if mmsi and name and name != "" and lat and lon:
+                        return mmsi, name, float(lat), float(lon)
+                except Exception:
+                    continue
     except Exception as e:
-        print(f"Error querying fallback vessel: {e}")
-    return None, None
+        print(f"Error reading ais_stream.log: {e}")
+    return None, None, None, None
 
 def get_any_vessel():
     """
@@ -306,15 +324,22 @@ def get_first_vessel_from_ws():
     return None, None
 
 if __name__ == "__main__":
-    # Try to get vessel from WebSocket feed
-    print("Attempting to get vessel from /ws WebSocket feed...")
-    mmsi, name = get_first_vessel_from_ws()
+    # Try to get a real vessel from backend
+    print("Attempting to get real vessel from /spatial_query...")
+    mmsi, name = get_real_vessel()
     if not mmsi or not name:
-        print("No vessel found via WebSocket. Aborting simulation.")
-        sys.exit(1)
-    print(f"Simulating circle spoofing for vessel: {name} ({mmsi})")
-    # Do NOT inject static data (since vessel already exists)
+        print("No real vessel found via spatial query. Falling back to vessel in ais_stream.log.")
+        mmsi, name, center_lat, center_lon = get_fallback_vessel()
+        if not mmsi or not name or center_lat is None or center_lon is None:
+            print("ERROR: Could not obtain a valid vessel MMSI, name, and position for spoofing.")
+            sys.exit(1)
+    else:
+        print(f"Using real vessel for spoofing: {name} ({mmsi})")
+        # Ensure static data is present for the real vessel
+        inject_static_data(mmsi, name)
+        # Query for last known position (fallback to SF Bay if not found)
+        center_lat, center_lon = 37.8, -122.4
     time.sleep(0.2)
     # Use realistic wall-clock duration and interval
-    inject_circle_spoofing(mmsi, name, center_lat=37.8, center_lon=-122.4, radius_nm=0.5, duration_minutes=30, interval_seconds=30)
+    inject_circle_spoofing(mmsi, name, center_lat=center_lat, center_lon=center_lon, radius_nm=0.5, duration_minutes=30, interval_seconds=30)
     print("Circle spoofing simulation complete.")

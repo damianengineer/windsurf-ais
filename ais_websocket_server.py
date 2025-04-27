@@ -731,11 +731,12 @@ async def inject_dark_period(
     mmsi: int = Body(...),
     lat: float = Body(...),
     lon: float = Body(...),
-    gap_seconds: int = Body(7200)
+    gap_seconds: int = Body(7200),
+    name: str = Body(None)
 ):
     now = datetime.utcnow()
-    meta1 = {"MMSI": mmsi, "ShipName": f"TestVessel{mmsi}", "latitude": lat, "longitude": lon, "time_utc": now.isoformat()}
-    meta2 = {"MMSI": mmsi, "ShipName": f"TestVessel{mmsi}", "latitude": lat+0.001, "longitude": lon+0.001, "time_utc": (now + timedelta(seconds=gap_seconds)).isoformat()}
+    meta1 = {"MMSI": mmsi, "ShipName": name if name is not None else f"TestVessel{mmsi}", "latitude": lat, "longitude": lon, "time_utc": now.isoformat()}
+    meta2 = {"MMSI": mmsi, "ShipName": name if name is not None else f"TestVessel{mmsi}", "latitude": lat+0.001, "longitude": lon+0.001, "time_utc": (now + timedelta(seconds=gap_seconds)).isoformat()}
     ais1 = {"Latitude": lat, "Longitude": lon, "Sog": 10, "Cog": 45, "TrueHeading": 45, "MessageID": 1, "UserID": mmsi, "NavigationalStatus": 0}
     ais2 = {"Latitude": lat+0.001, "Longitude": lon+0.001, "Sog": 10, "Cog": 45, "TrueHeading": 45, "MessageID": 1, "UserID": mmsi, "NavigationalStatus": 0}
     msg1 = {"MessageType": "PositionReport", "Message": {"PositionReport": ais1}, "MetaData": meta1, "injected": True}
@@ -751,11 +752,12 @@ async def inject_teleport(
     lon1: float = Body(...),
     lat2: float = Body(...),
     lon2: float = Body(...),
-    seconds_apart: int = Body(60)
+    seconds_apart: int = Body(60),
+    name: str = Body(None)
 ):
     now = datetime.utcnow()
-    meta1 = {"MMSI": mmsi, "ShipName": f"TestVessel{mmsi}", "latitude": lat1, "longitude": lon1, "time_utc": now.isoformat()}
-    meta2 = {"MMSI": mmsi, "ShipName": f"TestVessel{mmsi}", "latitude": lat2, "longitude": lon2, "time_utc": (now + timedelta(seconds=seconds_apart)).isoformat()}
+    meta1 = {"MMSI": mmsi, "ShipName": name if name is not None else f"TestVessel{mmsi}", "latitude": lat1, "longitude": lon1, "time_utc": now.isoformat()}
+    meta2 = {"MMSI": mmsi, "ShipName": name if name is not None else f"TestVessel{mmsi}", "latitude": lat2, "longitude": lon2, "time_utc": (now + timedelta(seconds=seconds_apart)).isoformat()}
     ais1 = {"Latitude": lat1, "Longitude": lon1, "Sog": 12, "Cog": 90, "TrueHeading": 90, "MessageID": 1, "UserID": mmsi, "NavigationalStatus": 0}
     ais2 = {"Latitude": lat2, "Longitude": lon2, "Sog": 12, "Cog": 90, "TrueHeading": 90, "MessageID": 1, "UserID": mmsi, "NavigationalStatus": 0}
     msg1 = {"MessageType": "PositionReport", "Message": {"PositionReport": ais1}, "MetaData": meta1, "injected": True}
@@ -768,11 +770,12 @@ async def inject_teleport(
 async def inject_identity_swap(
     mmsi: int = Body(...),
     lat: float = Body(...),
-    lon: float = Body(...)
+    lon: float = Body(...),
+    name: str = Body(None)
 ):
     now = datetime.utcnow()
-    meta1 = {"MMSI": mmsi, "ShipName": f"TestVessel{mmsi}", "latitude": lat, "longitude": lon, "time_utc": now.isoformat()}
-    meta2 = {"MMSI": mmsi, "ShipName": f"TestVessel{mmsi}_SWAP", "latitude": lat+0.001, "longitude": lon+0.001, "time_utc": (now + timedelta(seconds=60)).isoformat()}
+    meta1 = {"MMSI": mmsi, "ShipName": name if name is not None else f"TestVessel{mmsi}", "latitude": lat, "longitude": lon, "time_utc": now.isoformat()}
+    meta2 = {"MMSI": mmsi, "ShipName": (name + "_SWAP") if name is not None else f"TestVessel{mmsi}_SWAP", "latitude": lat+0.001, "longitude": lon+0.001, "time_utc": (now + timedelta(seconds=60)).isoformat()}
     ais1 = {"Latitude": lat, "Longitude": lon, "Sog": 10, "Cog": 45, "TrueHeading": 45, "MessageID": 1, "UserID": mmsi, "NavigationalStatus": 0}
     ais2 = {"Latitude": lat+0.001, "Longitude": lon+0.001, "Sog": 10, "Cog": 45, "TrueHeading": 45, "MessageID": 1, "UserID": mmsi, "NavigationalStatus": 0}
     msg1 = {"MessageType": "PositionReport", "Message": {"PositionReport": ais1}, "MetaData": meta1, "injected": True}
@@ -786,12 +789,15 @@ async def inject_telemetry(
     mmsi: int = Body(...),
     lat: float = Body(...),
     lon: float = Body(...),
-    navigational_status: int = Body(0)
+    navigational_status: int = Body(0),
+    name: str = Body(None),
+    heading: float = Body(None),
+    sog: float = Body(None)
 ):
     now = datetime.utcnow()
     meta = {
         "MMSI": mmsi,
-        "ShipName": f"TestVessel{mmsi}",
+        "ShipName": name if name is not None else f"TestVessel{mmsi}",
         "latitude": lat,
         "longitude": lon,
         "time_utc": now.isoformat()
@@ -799,9 +805,9 @@ async def inject_telemetry(
     ais = {
         "Latitude": lat,
         "Longitude": lon,
-        "Sog": 0,
-        "Cog": 0,
-        "TrueHeading": 0,
+        "Sog": sog if sog is not None else 0,
+        "Cog": heading if heading is not None else 0,
+        "TrueHeading": heading if heading is not None else 0,
         "MessageID": 1,
         "UserID": mmsi,
         "NavigationalStatus": navigational_status
@@ -857,12 +863,24 @@ def detect_circle_spoofing(mmsi):
     if np.std(sogs) > CIRCLE_SOG_STD_THRESHOLD:
         return None
     # Passed all checks
+    # Try to get vessel name from latest history point or vessel dict
+    vessel_name = None
+    if points:
+        last_point = points[-1]
+        meta = last_point.get("meta", {})
+        vessel_name = meta.get("ShipName") or meta.get("ship_name")
+    if not vessel_name:
+        vessel = vessels.get(mmsi, {})
+        vessel_name = vessel.get("ShipName") or vessel.get("ship_name") or f"MMSI {mmsi}"
     alert = {
         "mmsi": mmsi,
         "timestamp": now.isoformat(),
         "type": "circle_spoofing",
-        "message": f"ALERT: Vessel {mmsi} detected with possible circle spoofing pattern (r={r*60:.2f}nm)"
+        "message": f"ALERT: Vessel {vessel_name} detected with possible circle spoofing pattern (r={r*60:.2f}nm)"
     }
+    if points:
+        alert["lat"] = points[-1]["lat"]
+        alert["lon"] = points[-1]["lon"]
     print(f"[DEBUG] Circle spoofing alert generated: {alert}")
     return alert
 

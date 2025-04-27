@@ -244,10 +244,6 @@ This project uses [Leaflet.js](https://leafletjs.com/) for interactive map rende
 **Map data © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright).**
 </details>
 
-## Credits
-
-Special thanks to [sockcymbal](https://github.com/sockcymbal) for major contributions, including the interactive map chat feature and improvements to user experience.
-
 ## Known Issues & Future Work
 
 - Dynamic testing to proxy Windsurf messages, allowing for review of the data and formats being sent to Windsurf and Codium Cloud.
@@ -314,6 +310,8 @@ This project builds upon numerous open-source tools and standards:
 - **Development Environment**: [Windsurf IDE](https://windsurf.com/)
 
 **Special thanks** to [Cerebral Valley](https://cerebralvalley.ai/), [Shield Capital](https://shieldcap.com/), and all the hackathon mentors, open-source contributors, and fellow participants who provided guidance and inspiration.
+
+**Major contributor:** [sockcymbal](https://github.com/sockcymbal) — for key features including the interactive map chat assistant and substantial improvements to user experience.
 
 **Project Status**: Educational prototype  
 **License**: MIT

@@ -3,3 +3,4 @@ ais_stream.log
 *.log
 # Exclude sensitive and generated files
 __pycache__/
+.dstore

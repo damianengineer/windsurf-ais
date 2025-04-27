@@ -1,6 +1,8 @@
-# Maritime AIS Bay Area Visualization and Anomaly Alert System
+# Maritime AIS Bay Area Visualization, Anomaly Alert System, and Interactive Chat Assistant
 
-![AIS Bay Area Demo](./demo720.mov)
+![AIS Bay Area Screenshot](screenshot.png)
+
+[▶️ Watch the demo video](./demo720.mov)
 
 ## Project Overview
 

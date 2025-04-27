@@ -246,6 +246,9 @@ This project uses [Leaflet.js](https://leafletjs.com/) for interactive map rende
 
 ## Known Issues & Future Work
 
+<details>
+<summary><b>Known Issues & Future Work</b> (click to expand)</summary>
+
 - Dynamic testing to proxy Windsurf messages, allowing for review of the data and formats being sent to Windsurf and Codium Cloud.
 - Investigate and resolve missing or unprocessed AIS data fields (e.g., vessel destination, type, dimensions) to improve data completeness and visualization.
 - Containerize and scale application functions for robust, cloud-native deployment.
@@ -256,6 +259,8 @@ This project uses [Leaflet.js](https://leafletjs.com/) for interactive map rende
 - Support improved vessel type filtering, area-based spoofing/anomaly scenarios, and collaborative map annotation.
 - Enhance UI/UX for alert visualization, vessel details, and user interaction (including chat).
 - Enable advanced anomaly and threat detection based on use cases supported by enriched and multi-modal data sets.
+
+</details>
 
 ## References
 

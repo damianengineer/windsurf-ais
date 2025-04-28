@@ -244,6 +244,20 @@ This project uses [Leaflet.js](https://leafletjs.com/) for interactive map rende
 **Map data © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright).**
 </details>
 
+## LLM-Enabled Chat Server
+
+This project includes an LLM-enabled chat server to provide interactive vessel and map chat capabilities using OpenAI or compatible APIs. This server is separate from the main AIS backend and must be started independently.
+
+### Starting the Chat Server
+
+```
+uvicorn chat_enabled_server:app --reload --port 5001
+```
+
+- The chat server will be available at http://localhost:5001
+- Ensure your `.env` file contains a valid OpenAI API key (e.g., `OPENAI_API_KEY=your_key_here`)
+- The frontend will connect to this server for chat assistant features
+
 ## Known Issues & Future Work
 
 <details>

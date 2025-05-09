@@ -32,8 +32,8 @@ This project was inspired by Maritime Pattern Analysis problem sets explored dur
 - [Windsurf IDE](https://windsurf.com/) (recommended for AI-assisted development)
 </details>
 
-<details>
-<summary><b>Quick Start</b> (click to expand)</summary>
+<details open>
+<summary><b>Quick Start</b></summary>
 
 ```sh
 # Install dependencies
@@ -41,6 +41,9 @@ pip install -r requirements.txt
 
 # Start the backend server
 uvicorn ais_websocket_server:app --reload
+
+# Starting the Chat Server
+uvicorn chat_enabled_server:app --reload --port 5001
 
 # View the application
 # Open http://localhost:8000/static/ais_map.html in your browser
@@ -244,11 +247,12 @@ This project uses [Leaflet.js](https://leafletjs.com/) for interactive map rende
 **Map data © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright).**
 </details>
 
-## LLM-Enabled Chat Server
+<details>
+<summary><b>LLM-Enabled Chat Server</b> (click to expand)</summary>
 
 This project includes an LLM-enabled chat server to provide interactive vessel and map chat capabilities using OpenAI or compatible APIs. This server is separate from the main AIS backend and must be started independently.
 
-### Starting the Chat Server
+#### Starting the Chat Server
 
 ```
 uvicorn chat_enabled_server:app --reload --port 5001
@@ -257,6 +261,9 @@ uvicorn chat_enabled_server:app --reload --port 5001
 - The chat server will be available at http://localhost:5001
 - Ensure your `.env` file contains a valid OpenAI API key (e.g., `OPENAI_API_KEY=your_key_here`)
 - The frontend will connect to this server for chat assistant features
+</details>
+
+
 
 ## Known Issues & Future Work
 
@@ -330,4 +337,37 @@ This project builds upon numerous open-source tools and standards:
 **Major contributor:** [sockcymbal](https://github.com/sockcymbal) — for key features including the interactive map chat assistant and substantial improvements to user experience.
 
 **Project Status**: Educational prototype  
-**License**: MIT
+
+<details>
+<summary><b>Security Policy</b> (click to expand)</summary>
+
+If you discover a security vulnerability, privacy concern, or bug, please report it to:
+
+```fixit [dot] github [at] attentiontransformer [dot] com```
+
+Issues will be addressed on a best-effort basis. We appreciate your help in making this project more secure.
+</details>
+
+<details>
+<summary><b>MIT License</b> (click to expand)</summary>
+
+Copyright (c) 2025 Maritime AIS Bay Area Visualization
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+</details>
